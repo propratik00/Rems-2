@@ -11,10 +11,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pratik.rems.R
 import com.pratik.rems.ui.viewmodel.AddReminderViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,14 +28,14 @@ fun AddReminderScreen(
     reminderId: Int = -1,
     viewModel: AddReminderViewModel = hiltViewModel()
 ) {
-    // 1. Logic: Load data if we are in Edit Mode
+    // Logic: Load data if we are in Edit Mode
     LaunchedEffect(reminderId) {
         if (reminderId != -1) {
             viewModel.loadReminder(reminderId)
         }
     }
 
-    // 2. Logic: Close screen when save is successful
+    // Logic: Close screen when save is successful
     LaunchedEffect(viewModel.isSaved) {
         if (viewModel.isSaved) {
             onBack()
@@ -54,6 +56,7 @@ fun AddReminderScreen(
     var showTimePicker by remember { mutableStateOf(false) }
     var expandedRepeat by remember { mutableStateOf(false) }
 
+    // Repeat options list (Logic stays English, Display is translated in the dropdown)
     val repeatOptions = listOf(
         "One Time", "Daily", "Weekly", "Monthly",
         "Weekdays Only", "Weekends Only"
@@ -64,7 +67,7 @@ fun AddReminderScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (reminderId == -1) "New Reminder" else "Edit Reminder",
+                        if (reminderId == -1) stringResource(R.string.new_reminder) else stringResource(R.string.edit_reminder),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -93,19 +96,19 @@ fun AddReminderScreen(
             OutlinedTextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.title = it },
-                label = { Text("Reminder Title") },
-                placeholder = { Text("e.g., Morning Heart Meds") },
+                label = { Text(stringResource(R.string.reminder_title)) },
+                placeholder = { Text(stringResource(R.string.title_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium
             )
 
-            // MEDICINE DETAILS (Optional Row)
+            // MEDICINE DETAILS
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = viewModel.medicineName,
                     onValueChange = { viewModel.medicineName = it },
-                    label = { Text("Medicine Name") },
+                    label = { Text(stringResource(R.string.medicine_name)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
@@ -113,8 +116,8 @@ fun AddReminderScreen(
                 OutlinedTextField(
                     value = viewModel.dosage,
                     onValueChange = { viewModel.dosage = it },
-                    label = { Text("Dosage") },
-                    placeholder = { Text("500mg") },
+                    label = { Text(stringResource(R.string.dosage)) },
+                    placeholder = { Text(stringResource(R.string.dosage_placeholder)) },
                     modifier = Modifier.weight(0.6f),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
@@ -125,7 +128,7 @@ fun AddReminderScreen(
             OutlinedTextField(
                 value = viewModel.description,
                 onValueChange = { viewModel.description = it },
-                label = { Text("Notes / Description") },
+                label = { Text(stringResource(R.string.description)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 shape = MaterialTheme.shapes.medium
@@ -145,7 +148,7 @@ fun AddReminderScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Date", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.date), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                         Text(formatDate(viewModel.selectedDate), style = MaterialTheme.typography.bodyLarge)
                     }
                     Icon(Icons.Default.DateRange, contentDescription = null)
@@ -164,7 +167,7 @@ fun AddReminderScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Time", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.time), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                         Text(
                             String.format("%02d:%02d %s",
                                 if (viewModel.selectedHour % 12 == 0) 12 else viewModel.selectedHour % 12,
@@ -184,10 +187,10 @@ fun AddReminderScreen(
                 onExpandedChange = { expandedRepeat = !expandedRepeat }
             ) {
                 OutlinedTextField(
-                    value = viewModel.repeatType,
+                    value = viewModel.repeatType, // Logic remains English for DB
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Repeat Frequency") },
+                    label = { Text(stringResource(R.string.repeat_freq)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRepeat) },
                     modifier = Modifier.menuAnchor().fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
@@ -209,15 +212,20 @@ fun AddReminderScreen(
             }
 
             // PRIORITY SECTION
-            Text("Priority Level", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.priority_level), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf("Low", "Medium", "High").forEachIndexed { index, label ->
+                val priorities = listOf(
+                    stringResource(R.string.low),
+                    stringResource(R.string.medium),
+                    stringResource(R.string.high)
+                )
+                priorities.forEachIndexed { index, label ->
                     FilterChip(
                         selected = viewModel.priority == index,
                         onClick = { viewModel.priority = index },
                         label = { Text(label) },
                         leadingIcon = if (viewModel.priority == index) {
-                            { Box(Modifier.size(8.dp).padding(2.dp)) } // Small dot
+                            { Box(Modifier.size(8.dp).padding(2.dp)) }
                         } else null
                     )
                 }
@@ -233,7 +241,7 @@ fun AddReminderScreen(
                 enabled = viewModel.title.isNotBlank()
             ) {
                 Text(
-                    if (reminderId == -1) "Schedule Reminder" else "Update Reminder",
+                    if (reminderId == -1) stringResource(R.string.schedule_reminder) else stringResource(R.string.update_reminder),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -252,10 +260,10 @@ fun AddReminderScreen(
                 TextButton(onClick = {
                     viewModel.selectedDate = datePickerState.selectedDateMillis ?: viewModel.selectedDate
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -270,12 +278,12 @@ fun AddReminderScreen(
                     viewModel.selectedHour = timePickerState.hour
                     viewModel.selectedMinute = timePickerState.minute
                     showTimePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.cancel)) }
             },
-            title = { Text("Set Time") },
+            title = { Text(stringResource(R.string.time)) },
             text = {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     TimePicker(state = timePickerState)

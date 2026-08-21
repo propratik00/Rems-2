@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">रेमी</string>
+    <string name="my_reminders">माझे रिमाइंडर</string>
+    <string name="search_hint">औषध किंवा काम शोधा...</string>
+    <string name="add_new">नवीन जोडा</string>
+    <string name="pending">प्रलंबित</string>
+    <string name="completed">पूर्ण झाले</string>
+    <string name="no_reminders">अद्याप कोणतेही रिमाइंडर नाहीत</string>
+    <string name="create_first">तुमचा पहिला रिमाइंडर तयार करा</string>
+    <string name="no_results">निकाल सापडला नाही</string>
+    <string name="export_csv">CSV एक्सपोर्ट करा</string>
+    <string name="new_reminder">नवीन रिमाइंडर</string>
+    <string name="edit_reminder">रिमाइंडर संपादित करा</string>
+    <string name="reminder_title">रिमाइंडरचे नाव</string>
+    <string name="title_placeholder">उदा: सकाळचे औषध</string>
+    <string name="medicine_name">औषधाचे नाव</string>
+    <string name="dosage">डोस</string>
+    <string name="dosage_placeholder">500mg</string>
+    <string name="description">वर्णन / नोट्स</string>
+    <string name="date">तारीख</string>
+    <string name="time">वेळ</string>
+    <string name="repeat_freq">पुनरावृत्ती</string>
+    <string name="priority_level">प्राधान्य स्तर</string>
+    <string name="low">कमी</string>
+    <string name="medium">मध्यम</string>
+    <string name="high">उच्च</string>
+    <string name="schedule_reminder">रिमाइंडर सेट करा</string>
+    <string name="update_reminder">रिमाइंडर अपडेट करा</string>
+    <string name="select_language">भाषा निवडा</string>
+    <string name="cancel">रद्द करा</string>
+    <string name="ok">ठिक आहे</string>
+</resources>

@@ -1,3 +1,38 @@
 <resources>
-    <string name="app_name">rems</string>
+    <string name="app_name">Remi</string>
+
+    <!-- Home Screen -->
+    <string name="my_reminders">My Reminders</string>
+    <string name="search_hint">Search medicine or task...</string>
+    <string name="add_new">Add New</string>
+    <string name="pending">Pending</string>
+    <string name="completed">Completed</string>
+    <string name="no_reminders">No reminders yet</string>
+    <string name="create_first">Create your first reminder</string>
+    <string name="no_results">No results found</string>
+    <string name="export_csv">Export CSV</string>
+
+    <!-- Add/Edit Screen -->
+    <string name="new_reminder">New Reminder</string>
+    <string name="edit_reminder">Edit Reminder</string>
+    <string name="reminder_title">Reminder Title</string>
+    <string name="title_placeholder">e.g., Morning Heart Meds</string>
+    <string name="medicine_name">Medicine Name</string>
+    <string name="dosage">Dosage</string>
+    <string name="dosage_placeholder">500mg</string>
+    <string name="description">Notes / Description</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="repeat_freq">Repeat Frequency</string>
+    <string name="priority_level">Priority Level</string>
+    <string name="low">Low</string>
+    <string name="medium">Medium</string>
+    <string name="high">High</string>
+    <string name="schedule_reminder">Schedule Reminder</string>
+    <string name="update_reminder">Update Reminder</string>
+
+    <!-- Language Selection -->
+    <string name="select_language">Select Language</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
 </resources>
