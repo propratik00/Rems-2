@@ -11,7 +11,7 @@ import com.pratik.rems.data.local.entity.Reminder
  */
 @Database(
     entities = [Reminder::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class RemiDatabase : RoomDatabase() {

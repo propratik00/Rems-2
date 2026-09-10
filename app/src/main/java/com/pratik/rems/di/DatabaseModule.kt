@@ -19,11 +19,15 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): RemiDatabase {
+        // Room.databaseBuilder creates the database instance. 
+        // We use fallbackToDestructiveMigration to handle schema changes by recreating the DB.
+        // IMPORTANT: This will clear existing data. For production, manual migrations are preferred.
         return Room.databaseBuilder(
             context,
             RemiDatabase::class.java,
             "remi_db"
-        ).build()
+        ).fallbackToDestructiveMigration(true)
+            .build()
     }
 
     // This function tells Hilt how to provide the DAO (needed for our logic)

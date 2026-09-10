@@ -6,6 +6,8 @@ import androidx.room.PrimaryKey
 /**
  * This class defines the "reminders" table in the database.
  * Each property represents a column in that table.
+ * 
+ * NOTE: Schema updated in Version 2 (added medicineName, dosage, isCompleted, etc.)
  */
 @Entity(tableName = "reminders")
 data class Reminder(

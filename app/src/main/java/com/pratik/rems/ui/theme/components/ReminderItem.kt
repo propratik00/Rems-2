@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,108 +32,158 @@ fun ReminderItem(
     onDeleteClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
-    // Determine priority color
-    val priorityColor = when (reminder.priority) {
-        2 -> Color(0xFFE57373) // High - Red
-        1 -> Color(0xFFFFB74D) // Medium - Orange
-        else -> Color(0xFF81C784) // Low - Green
+    // Priority Colors: 2 = High (Rose/Crimson), 1 = Medium (Amber), 0 = Low (Emerald)
+    val (priorityColor, priorityLabel) = when (reminder.priority) {
+        2 -> Color(0xFFE11D48) to "High"
+        1 -> Color(0xFFF59E0B) to "Medium"
+        else -> Color(0xFF10B981) to "Low"
     }
 
-    // Format display time
     val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
     val displayTime = timeFormatter.format(Date(reminder.time))
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
+            .padding(vertical = 5.dp)
             .clickable { onItemClick() },
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (reminder.isCompleted)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
             else
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (reminder.isCompleted) 1.dp else 3.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 1. Completion Checkbox
-            Checkbox(
-                checked = reminder.isCompleted,
-                onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+            // Urgency Indicator Stripe on Left
+            Box(
+                modifier = Modifier
+                    .width(6.dp)
+                    .fillMaxHeight()
+                    .background(if (reminder.isCompleted) Color.LightGray else priorityColor)
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 2. Reminder Details
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = reminder.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+            Row(
+                modifier = Modifier
+                    .padding(14.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Checkbox
+                Checkbox(
+                    checked = reminder.isCompleted,
+                    onCheckedChange = onCheckedChange,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
 
-                // Show Medicine Name and Dosage if available
-                if (!reminder.medicineName.isNullOrBlank()) {
-                    Text(
-                        text = "💊 ${reminder.medicineName} (${reminder.dosage ?: "No dose"})",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Content Details
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = reminder.title,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        // Priority Tag Pill
+                        Surface(
+                            shape = CircleShape,
+                            color = priorityColor.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = priorityLabel,
+                                color = priorityColor,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Medicine and Dosage pill
+                    if (!reminder.medicineName.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MedicalServices,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${reminder.medicineName} • ${reminder.dosage ?: "As prescribed"}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    // Time and Repeat Schedule Info
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(13.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = displayTime,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        if (reminder.repeatType != "One Time") {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.Repeat,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = reminder.repeatType,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
 
-                // Time and Repeat Info
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "$displayTime • ${reminder.repeatType}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            // 3. Priority Indicator and Delete Action
-            Column(horizontalAlignment = Alignment.End) {
-                // Small priority dot
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(priorityColor)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                IconButton(
-                    onClick = onDeleteClick,
-                    modifier = Modifier.size(32.dp)
-                ) {
+                // Delete Action
+                IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Reminder",
-                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.75f),
                         modifier = Modifier.size(20.dp)
                     )
                 }

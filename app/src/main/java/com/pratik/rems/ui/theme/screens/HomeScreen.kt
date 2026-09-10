@@ -26,6 +26,8 @@ import com.pratik.rems.ui.components.ReminderItem
 import com.pratik.rems.ui.viewmodel.ReminderViewModel
 import com.pratik.rems.utils.CsvExporter
 import com.pratik.rems.utils.LanguageManager
+import android.content.Context
+import com.pratik.rems.ui.components.FirstLaunchTutorialDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,12 +38,33 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val reminders by viewModel.reminders.collectAsState()
+    val sharedPreferences = remember {
+        context.getSharedPreferences("remi_user_prefs", Context.MODE_PRIVATE)
+    }
+
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
+    var showTutorialDialog by remember {
+        mutableStateOf(!sharedPreferences.getBoolean("has_seen_tutorial", false))
+    }
+
 
     // --- LANGUAGE DIALOG STATE ---
     var showLanguageDialog by remember { mutableStateOf(false) }
+
+    if (showTutorialDialog) {
+        FirstLaunchTutorialDialog(
+            onDismiss = {
+                // Mark tutorial as completed so it won't show again!
+                sharedPreferences.edit()
+                    .putBoolean("has_seen_tutorial", true)
+                    .apply()
+                showTutorialDialog = false
+            }
+        )
+    }
+
 
     if (showLanguageDialog) {
         LanguageDialog(
