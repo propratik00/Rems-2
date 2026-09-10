@@ -32,7 +32,6 @@ fun ReminderItem(
     onDeleteClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
-    // Priority Colors: 2 = High (Rose/Crimson), 1 = Medium (Amber), 0 = Low (Emerald)
     val (priorityColor, priorityLabel) = when (reminder.priority) {
         2 -> Color(0xFFE11D48) to "High"
         1 -> Color(0xFFF59E0B) to "Medium"
@@ -45,7 +44,6 @@ fun ReminderItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp)
             .clickable { onItemClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -54,18 +52,21 @@ fun ReminderItem(
             else
                 MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (reminder.isCompleted) 1.dp else 3.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (reminder.isCompleted) 1.dp else 2.dp)
     ) {
+        // NOTE: height(IntrinsicSize.Min) ensures the stripe matches the card height exactly
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Urgency Indicator Stripe on Left
+            // Urgency color stripe on the left edge
             Box(
                 modifier = Modifier
                     .width(6.dp)
                     .fillMaxHeight()
-                    .background(if (reminder.isCompleted) Color.LightGray else priorityColor)
+                    .background(if (reminder.isCompleted) Color(0xFFCBD5E1) else priorityColor)
             )
 
             Row(
@@ -74,19 +75,14 @@ fun ReminderItem(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Checkbox
                 Checkbox(
                     checked = reminder.isCompleted,
                     onCheckedChange = onCheckedChange,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Content Details
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -102,7 +98,6 @@ fun ReminderItem(
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        // Priority Tag Pill
                         Surface(
                             shape = CircleShape,
                             color = priorityColor.copy(alpha = 0.12f)
@@ -117,7 +112,6 @@ fun ReminderItem(
                         }
                     }
 
-                    // Medicine and Dosage pill
                     if (!reminder.medicineName.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
@@ -142,7 +136,6 @@ fun ReminderItem(
                         }
                     }
 
-                    // Time and Repeat Schedule Info
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 6.dp)
@@ -156,7 +149,7 @@ fun ReminderItem(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = displayTime,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
@@ -178,7 +171,6 @@ fun ReminderItem(
                     }
                 }
 
-                // Delete Action
                 IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = Icons.Default.Delete,

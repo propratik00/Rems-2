@@ -36,7 +36,7 @@ fun FirstLaunchTutorialDialog(
 
     val steps = listOf(
         TutorialStep(
-            title = "Welcome to Remi!",
+            title = "Welcome to Rems!",
             subtitle = "Your Smart Medicine & Task Companion",
             description = "Track your daily medicine prescriptions, dosages, and critical tasks so you never miss a schedule.",
             icon = Icons.Default.MedicalServices,
