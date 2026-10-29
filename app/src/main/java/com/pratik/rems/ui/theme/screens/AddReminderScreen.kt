@@ -1,16 +1,24 @@
 package com.pratik.rems.ui.screens
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,6 +29,14 @@ import com.pratik.rems.ui.viewmodel.AddReminderViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+// An enum to identify which field the user clicked the mic for
+enum class VoiceField {
+    TITLE,
+    MEDICINE_NAME,
+    DOSAGE,
+    DESCRIPTION
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddReminderScreen(
@@ -28,6 +44,8 @@ fun AddReminderScreen(
     reminderId: Int = -1,
     viewModel: AddReminderViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
     // Logic: Load data if we are in Edit Mode
     LaunchedEffect(reminderId) {
         if (reminderId != -1) {
@@ -39,6 +57,57 @@ fun AddReminderScreen(
     LaunchedEffect(viewModel.isSaved) {
         if (viewModel.isSaved) {
             onBack()
+        }
+    }
+
+    // --- VOICE RECOGNITION SETUP ---
+    var currentVoiceField by remember { mutableStateOf<VoiceField?>(null) }
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            // Extract the spoken text
+            val spokenText = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+                ?.trim() ?: ""
+
+            if (spokenText.isNotEmpty()) {
+                when (currentVoiceField) {
+                    VoiceField.TITLE -> viewModel.title = spokenText
+                    VoiceField.MEDICINE_NAME -> viewModel.medicineName = spokenText
+                    VoiceField.DOSAGE -> viewModel.dosage = spokenText
+                    VoiceField.DESCRIPTION -> {
+                        // Append if description already has notes, otherwise replace
+                        viewModel.description = if (viewModel.description.isBlank()) {
+                            spokenText
+                        } else {
+                            "${viewModel.description}\n$spokenText"
+                        }
+                    }
+                    null -> Unit
+                }
+            }
+        }
+    }
+
+    // Helper to launch the Google Voice dialog
+    val promptText = stringResource(R.string.speak_now)
+    val notSupportedText = stringResource(R.string.voice_not_supported)
+
+    val startVoiceInput: (VoiceField) -> Unit = { field ->
+        currentVoiceField = field
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, promptText)
+            // Use device's active locale so Hindi / Marathi / English works automatically
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+        }
+        try {
+            speechLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, notSupportedText, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -56,7 +125,6 @@ fun AddReminderScreen(
     var showTimePicker by remember { mutableStateOf(false) }
     var expandedRepeat by remember { mutableStateOf(false) }
 
-    // Repeat options list (Logic stays English, Display is translated in the dropdown)
     val repeatOptions = listOf(
         "One Time", "Daily", "Weekly", "Monthly",
         "Weekdays Only", "Weekends Only"
@@ -92,23 +160,41 @@ fun AddReminderScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // TITLE SECTION
+            // 1. TITLE SECTION (With Mic)
             OutlinedTextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.title = it },
                 label = { Text(stringResource(R.string.reminder_title)) },
                 placeholder = { Text(stringResource(R.string.title_placeholder)) },
+                trailingIcon = {
+                    IconButton(onClick = { startVoiceInput(VoiceField.TITLE) }) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = stringResource(R.string.tap_to_speak),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium
             )
 
-            // MEDICINE DETAILS
+            // 2. MEDICINE DETAILS (With Mics)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = viewModel.medicineName,
                     onValueChange = { viewModel.medicineName = it },
                     label = { Text(stringResource(R.string.medicine_name)) },
+                    trailingIcon = {
+                        IconButton(onClick = { startVoiceInput(VoiceField.MEDICINE_NAME) }) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.tap_to_speak),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
@@ -118,17 +204,35 @@ fun AddReminderScreen(
                     onValueChange = { viewModel.dosage = it },
                     label = { Text(stringResource(R.string.dosage)) },
                     placeholder = { Text(stringResource(R.string.dosage_placeholder)) },
-                    modifier = Modifier.weight(0.6f),
+                    trailingIcon = {
+                        IconButton(onClick = { startVoiceInput(VoiceField.DOSAGE) }) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.tap_to_speak),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    modifier = Modifier.weight(0.75f),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
                 )
             }
 
-            // DESCRIPTION
+            // 3. DESCRIPTION (With Mic)
             OutlinedTextField(
                 value = viewModel.description,
                 onValueChange = { viewModel.description = it },
                 label = { Text(stringResource(R.string.description)) },
+                trailingIcon = {
+                    IconButton(onClick = { startVoiceInput(VoiceField.DESCRIPTION) }) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = stringResource(R.string.tap_to_speak),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 shape = MaterialTheme.shapes.medium
@@ -187,7 +291,7 @@ fun AddReminderScreen(
                 onExpandedChange = { expandedRepeat = !expandedRepeat }
             ) {
                 OutlinedTextField(
-                    value = viewModel.repeatType, // Logic remains English for DB
+                    value = viewModel.repeatType,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.repeat_freq)) },
